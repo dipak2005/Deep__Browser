@@ -35,7 +35,7 @@ class _GovAppState extends State<GovApp> {
           theme: ThemeData.light(useMaterial3: true),
           routes: {
             "/": (context) =>  HomePage(url: "https://www.google.com",name: "Google"),
-            // "ConnectionPage": (context) => ConnectionPage(),
+            "ConnectionPage": (context) => ConnectionPage(),
           },
         );
       },

@@ -6,6 +6,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:govt_app/controller/netprovider.dart';
+import 'package:govt_app/model/urlmodel.dart';
 import 'package:provider/provider.dart';
 
 class HomePage extends StatefulWidget {
@@ -19,31 +20,13 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  PullToRefreshController? pullToRefreshController;
-  InAppWebViewController? inAppWebViewController;
   String? webAdd;
 
   @override
   void initState() {
     super.initState();
 
-    pullToRefreshController = PullToRefreshController(
-      settings: PullToRefreshSettings(
-        color: Colors.red,
-      ),
-      onRefresh: () async {
-        if (Platform.isAndroid) {
-          inAppWebViewController?.reload();
-          await pullToRefreshController?.endRefreshing();
-        } else if (Platform.isIOS) {
-          inAppWebViewController?.loadUrl(
-            urlRequest: URLRequest(
-              url: await inAppWebViewController?.getUrl(),
-            ),
-          );
-        }
-      },
-    );
+    Provider.of<NetProvider>(context, listen: false).refresh();
   }
 
   Widget build(BuildContext context) {
@@ -262,7 +245,9 @@ class _HomePageState extends State<HomePage> {
                                         leading: Icon(
                                             Icons.stacked_line_chart_sharp),
                                         title: Text(
-                                          widget.url,
+                                          Provider.of<NetProvider>(context,
+                                                  listen: false)
+                                              .bookName[index],
                                           style: TextStyle(color: Colors.black),
                                         ),
                                         subtitle: Text("$webAdd"),
@@ -318,7 +303,8 @@ class _HomePageState extends State<HomePage> {
             Expanded(
               child: InAppWebView(
                 onWebViewCreated: (controller) {
-                  inAppWebViewController = controller;
+                  Provider.of<NetProvider>(context, listen: false)
+                      .inAppWebViewController = controller;
                 },
                 onLoadStop: (controller, url) async {
                   var goBack = await controller.canGoBack();
@@ -334,32 +320,39 @@ class _HomePageState extends State<HomePage> {
                       .changeProgress(progress / 100);
                 },
                 initialUrlRequest: URLRequest(url: WebUri(widget.url)),
-                pullToRefreshController: pullToRefreshController,
+                pullToRefreshController:
+                    Provider.of<NetProvider>(context, listen: false)
+                        .pullToRefreshController,
               ),
             ),
             TextFormField(
               onFieldSubmitted: (value) {
                 if (widget.url == "https://www.google.com") {
                   var search = "https://www.google.com/search?&q=$value";
-                  inAppWebViewController?.loadUrl(
-                      urlRequest: URLRequest(
-                    url: WebUri(search),
-                  ));
+                  Provider.of<NetProvider>(context, listen: false)
+                      .inAppWebViewController
+                      ?.loadUrl(
+                          urlRequest: URLRequest(
+                        url: WebUri(search),
+                      ));
                   webAdd = search;
                 } else if (widget.url == "https://duckduckgo.com") {
                   var search = "https://duckduckgo.com/&q=$value";
-                  inAppWebViewController?.loadUrl(
-                      urlRequest: URLRequest(url: WebUri(search)));
+                  Provider.of<NetProvider>(context, listen: false)
+                      .inAppWebViewController
+                      ?.loadUrl(urlRequest: URLRequest(url: WebUri(search)));
                   webAdd = search;
                 } else if (widget.url == "https://in.search.yahoo.com") {
                   var search = "https://in.search.yahoo.com/search?p=$value";
-                  inAppWebViewController?.loadUrl(
-                      urlRequest: URLRequest(url: WebUri(search)));
+                  Provider.of<NetProvider>(context, listen: false)
+                      .inAppWebViewController
+                      ?.loadUrl(urlRequest: URLRequest(url: WebUri(search)));
                   webAdd = search;
                 } else if (widget.url == "https://www.bing.com") {
                   var search = "https://www.bing.com/search?q=$value";
-                  inAppWebViewController?.loadUrl(
-                      urlRequest: URLRequest(url: WebUri(search)));
+                  Provider.of<NetProvider>(context, listen: false)
+                      .inAppWebViewController
+                      ?.loadUrl(urlRequest: URLRequest(url: WebUri(search)));
                   webAdd = search;
                 }
               },
@@ -397,13 +390,23 @@ class _HomePageState extends State<HomePage> {
                       builder: (BuildContext context, net, Widget? child) {
                         return IconButton(
                           onPressed: () async {
-                            var url = inAppWebViewController?.loadUrl(
-                              urlRequest: URLRequest(
-                                url: await inAppWebViewController?.getUrl(),
-                              ),
-                            );
+                            var url =
+                                Provider.of<NetProvider>(context, listen: false)
+                                    .inAppWebViewController
+                                    ?.loadUrl(
+                                      urlRequest: URLRequest(
+                                        url: await Provider.of<NetProvider>(
+                                                context,
+                                                listen: false)
+                                            .inAppWebViewController
+                                            ?.getUrl(),
+                                      ),
+                                    );
                             net.addBook(URLRequest(
-                                url: await inAppWebViewController?.getUrl()));
+                                url: await Provider.of<NetProvider>(context,
+                                        listen: false)
+                                    .inAppWebViewController
+                                    ?.getUrl()));
                             // net.addBook(
 
                             //     inAppWebViewController!.getUrl().toString(),
@@ -424,7 +427,9 @@ class _HomePageState extends State<HomePage> {
                     IconButton(
                       onPressed: net.goBack
                           ? () {
-                              inAppWebViewController?.goBack();
+                              Provider.of<NetProvider>(context, listen: false)
+                                  .inAppWebViewController
+                                  ?.goBack();
                             }
                           : null,
                       icon: Icon(Icons.arrow_back_ios,
@@ -432,7 +437,9 @@ class _HomePageState extends State<HomePage> {
                     ),
                     IconButton(
                       onPressed: () {
-                        inAppWebViewController?.reload();
+                        Provider.of<NetProvider>(context, listen: false)
+                            .inAppWebViewController
+                            ?.reload();
                       },
                       icon: Icon(
                         Icons.refresh,
@@ -443,7 +450,9 @@ class _HomePageState extends State<HomePage> {
                     IconButton(
                       onPressed: net.goForward
                           ? () {
-                              inAppWebViewController?.goForward();
+                              Provider.of<NetProvider>(context, listen: false)
+                                  .inAppWebViewController
+                                  ?.goForward();
                             }
                           : null,
                       icon: Icon(

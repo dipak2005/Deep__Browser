@@ -12,6 +12,11 @@ class ConnectionPage extends StatefulWidget {
 
 class _ConnectionPageState extends State<ConnectionPage> {
   @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    Navigator.pushReplacementNamed(context, "HomePage");
+  }
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
