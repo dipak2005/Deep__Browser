@@ -3,67 +3,57 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
-import 'package:govt_app/model/urlmodel.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class NetProvider extends ChangeNotifier {
   bool isNet = false;
   double progress = 0;
   ConnectivityResult result = ConnectivityResult.none;
-
-  String? webAdd;
+  String webAdd = "";
   bool goBack = false;
   bool goForward = false;
   String searchengine = "Google";
   bool isBook = false;
-  List<URLRequest> bookMarList = [];
+  String url = "";
+  String urlName = "";
 
-  String? url;
-  String? bookUrl;
-  List<String> bookName=[];
-  List<String> bookLink=[];
+  ConnectivityResult connectivityResult = ConnectivityResult.none;
+  List<String> bookName = [];
+  List<String> bookLink = [];
 
   TextEditingController addressController = TextEditingController();
   InAppWebViewController? inAppWebViewController;
   PullToRefreshController? pullToRefreshController;
 
-  void addBook(URLRequest url) {
-    isBook = !isBook;
-    bookName?.add(inAppWebViewController!.getTitle().toString());
-    bookLink?.add(bookUrl!);
-    bookMarList.add(URLRequest());
-    notifyListeners();
-  }
-
   refresh() {
     pullToRefreshController = PullToRefreshController(
-      onRefresh: () async{
-
-      if (Platform.isAndroid) {
-        await  inAppWebViewController?.reload();
-        Future.delayed(
-          const Duration(seconds: 2),
-        );
-        pullToRefreshController?.endRefreshing();
-      } else if (Platform.isIOS) {
-       inAppWebViewController
-            ?.loadUrl(
-          urlRequest: URLRequest(
-            url: await inAppWebViewController
-                ?.getUrl(),
-          ),
-        );
-      }
+      settings: PullToRefreshSettings(
+        color: Colors.red,
+      ),
+      onRefresh: () async {
+        if (Platform.isAndroid) {
+          await inAppWebViewController?.reload();
+          Future.delayed(
+            const Duration(seconds: 2),
+          );
+          pullToRefreshController?.endRefreshing();
+        } else if (Platform.isIOS) {
+          inAppWebViewController?.loadUrl(
+            urlRequest: URLRequest(
+              url: await inAppWebViewController?.getUrl(),
+            ),
+          );
+        }
       },
     );
   }
 
-  loadUrl(int index) {
-    inAppWebViewController?.loadUrl(
-        urlRequest: URLRequest(url: WebUri(bookLink![index])));
-  }
-
-  void remove(int index) {
-    bookMarList.removeAt(index);
+  void remove(int index) async {
+    bookName.removeAt(index);
+    bookLink.removeAt(index);
+    SharedPreferences preferences = await SharedPreferences.getInstance();
+    preferences.setStringList('link', bookLink);
+    preferences.setStringList('linkName', bookName);
     notifyListeners();
   }
 
@@ -79,6 +69,12 @@ class NetProvider extends ChangeNotifier {
   void addNetListener() {
     Connectivity().onConnectivityChanged.listen((event) {
       result = event;
+      // if ((isNet && event == ConnectivityResult.none) ||
+      //     (!isNet && event != ConnectivityResult.none)) {
+      //   changeNetConnection(event != ConnectivityResult.none);
+      //   notifyListeners();
+      // }
+
       notifyListeners();
     });
   }

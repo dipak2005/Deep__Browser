@@ -2,12 +2,14 @@
 
 import 'dart:io';
 
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:govt_app/controller/netprovider.dart';
 import 'package:govt_app/model/urlmodel.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class HomePage extends StatefulWidget {
   final String url;
@@ -27,8 +29,10 @@ class _HomePageState extends State<HomePage> {
     super.initState();
 
     Provider.of<NetProvider>(context, listen: false).refresh();
+    getList();
   }
 
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -41,18 +45,22 @@ class _HomePageState extends State<HomePage> {
                 color: Colors.black12,
                 borderRadius: BorderRadius.circular(50),
               ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  // Icon(Icons.link_sharp),
-                  TextButton(
-                    child: Text(
-                        webAdd == null ? widget.url : webAdd?.trim() ?? "",
-                        style: TextStyle(color: Colors.black)),
-                    onPressed: () async {},
-                  ),
-                ],
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    Icon(Icons.link_sharp),
+                    Center(
+                      child: Text(
+                          webAdd == null
+                              ? widget.url
+                              : Provider.of<NetProvider>(context, listen: false)
+                                  .url,
+                          style: TextStyle(color: Colors.black, fontSize: 16)),
+                    ),
+                  ],
+                ),
               ),
             );
             //   TextFormField(
@@ -226,8 +234,8 @@ class _HomePageState extends State<HomePage> {
                       builder: (context) {
                         return Consumer<NetProvider>(
                           builder: (BuildContext context, net, Widget? child) {
-                            return net.bookMarList.isEmpty
-                                ? Container(
+                            return net.bookLink.isEmpty
+                                ? SizedBox(
                                     height: MediaQuery.sizeOf(context).height,
                                     width: MediaQuery.sizeOf(context).width,
                                     child: Center(
@@ -239,7 +247,7 @@ class _HomePageState extends State<HomePage> {
                                       ],
                                     )))
                                 : ListView.builder(
-                                    itemCount: net.bookMarList.length,
+                                    itemCount: net.bookLink.length,
                                     itemBuilder: (context, index) {
                                       return ListTile(
                                         leading: Icon(
@@ -250,10 +258,13 @@ class _HomePageState extends State<HomePage> {
                                               .bookName[index],
                                           style: TextStyle(color: Colors.black),
                                         ),
-                                        subtitle: Text("$webAdd"),
+                                        subtitle: Text(Provider.of<NetProvider>(
+                                                context,
+                                                listen: false)
+                                            .bookLink[index]),
                                         trailing: IconButton(
                                             onPressed: () {
-                                              if (net.bookMarList.length == 1) {
+                                              if (net.bookLink.length == 1) {
                                                 net.remove(index);
                                                 Navigator.pop(context);
                                               }
@@ -306,23 +317,17 @@ class _HomePageState extends State<HomePage> {
                   Provider.of<NetProvider>(context, listen: false)
                       .inAppWebViewController = controller;
                 },
-                onLoadStop: (controller, url) async {
-                  var goBack = await controller.canGoBack();
-                  var goForward = await controller.canGoForward();
-
-                  if (mounted) {
+                pullToRefreshController:
                     Provider.of<NetProvider>(context, listen: false)
-                        .status(goBack, goForward);
-                  }
+                        .pullToRefreshController,
+                onLoadStop: (controller, url) async {
+                  updatePageInfo(controller);
                 },
                 onProgressChanged: (controller, progress) {
                   Provider.of<NetProvider>(context, listen: false)
                       .changeProgress(progress / 100);
                 },
                 initialUrlRequest: URLRequest(url: WebUri(widget.url)),
-                pullToRefreshController:
-                    Provider.of<NetProvider>(context, listen: false)
-                        .pullToRefreshController,
               ),
             ),
             TextFormField(
@@ -390,31 +395,17 @@ class _HomePageState extends State<HomePage> {
                       builder: (BuildContext context, net, Widget? child) {
                         return IconButton(
                           onPressed: () async {
-                            var url =
-                                Provider.of<NetProvider>(context, listen: false)
-                                    .inAppWebViewController
-                                    ?.loadUrl(
-                                      urlRequest: URLRequest(
-                                        url: await Provider.of<NetProvider>(
-                                                context,
-                                                listen: false)
-                                            .inAppWebViewController
-                                            ?.getUrl(),
-                                      ),
-                                    );
-                            net.addBook(URLRequest(
-                                url: await Provider.of<NetProvider>(context,
-                                        listen: false)
-                                    .inAppWebViewController
-                                    ?.getUrl()));
-                            // net.addBook(
-
-                            //     inAppWebViewController!.getUrl().toString(),
-                            //     );
-
-                            // var link = URLRequest(
-                            //     url: await inAppWebViewController?.getUrl());
-                            // print("333333333>>>>> $link");
+                            if (net.bookLink.contains(net.url)) {
+                              showDuplicateBookmarkAdd(context);
+                            } else {
+                              showBookmarkAdd(context);
+                              net.bookLink.add(net.url);
+                              net.bookName.add(net.urlName);
+                            }
+                            SharedPreferences pref =
+                                await SharedPreferences.getInstance();
+                            pref.setStringList("linkName", net.bookName);
+                            pref.setStringList("link", net.bookLink);
                           },
                           icon: Icon(
                             Icons.bookmark_add_outlined,
@@ -470,8 +461,8 @@ class _HomePageState extends State<HomePage> {
       ),
       // bottomNavigationBar: Consumer<NetProvider>(
       //   builder: (context, net, child) {
-      //     if (net.result == ConnectivityResult.mobile ||
-      //         net.result == ConnectivityResult.wifi) {
+      //     net.addNetListener();
+      //     if (net.isNet) {
       //       return ScaffoldMessenger(
       //         child: Container(
       //           height: MediaQuery.sizeOf(context).height * 0.03,
@@ -504,6 +495,52 @@ class _HomePageState extends State<HomePage> {
       //     }
       //   },
       // ),
+    );
+  }
+
+  void getList() async {
+    SharedPreferences preferences = await SharedPreferences.getInstance();
+    List<String>? storedLink = preferences.getStringList("link");
+    List<String>? storedName = preferences.getStringList("linkName");
+    var net = Provider.of<NetProvider>(context, listen: false);
+    if (storedLink != null && storedLink.isNotEmpty) {
+      net.bookLink = storedLink;
+    }
+    if (storedName != null && storedName.isNotEmpty) {
+      net.bookName = storedName;
+    }
+  }
+
+  void updatePageInfo(InAppWebViewController controller) async {
+    var d = Provider.of<NetProvider>(context, listen: false);
+    String? title = await controller.getTitle();
+    d.urlName = title ?? '';
+    var canGoBack = await controller.canGoBack();
+    var canGoForward = await controller.canGoForward();
+    d.url = (await controller.getUrl())?.toString() ?? '';
+    if (mounted) {
+      Provider.of<NetProvider>(context, listen: false)
+          .status(canGoBack, canGoForward);
+    }
+  }
+
+  void showBookmarkAdd(BuildContext context) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        backgroundColor: Colors.green,
+        content: Center(child: Text('Added to Bookmark!...')),
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
+
+  void showDuplicateBookmarkAdd(BuildContext context) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        backgroundColor: Colors.red,
+        content: Center(child: Text('Already Added to Bookmark!...')),
+        duration: Duration(seconds: 2),
+      ),
     );
   }
 }
