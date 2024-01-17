@@ -15,16 +15,11 @@ content.
 # Project Technologies:
 - Dart language
 - Flutter framework with MVC and Provider architecture
-# Project Requirements:
-- Knowledge of programming languages such as Dart.
-- Familiarity with the Flutter framework and WebView technology.
-- Understanding of user interface design principles and best practices.
-- Experience with mobile app development and related tools such as Android Studio or VS Code.
-- Ability to work independently.
 # Project Deliverables:
 - A functional mobile browser application developed using Flutter and WebView.
 - Source code and documentation for the application.
 - Project report detailing the development process, challenges faced, and solutions implemented.
 - Presentation and demonstration of the application to a panel of reviewers.
 # ScreenShots:
-<img src> 
+<img src> ![dimage](https://github.com/dipak2005/Deep__Browser/assets/143473007/6ec9145e-5bdd-4e3e-bf60-72fba92c34b5)
+
