@@ -63,35 +63,7 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
             );
-            //   TextFormField(
-            //   controller:
-            //       net.webAdd.text,
-            //   style: TextStyle(
-            //       backgroundColor: Colors.blueAccent,
-            //       color: Provider.of<NetProvider>(context, listen: false)
-            //               .webAdd
-            //               .text
-            //               .isEmpty
-            //           ? Colors.black
-            //           : Colors.white),
-            //   decoration: InputDecoration(
-            //     // hintText: "Web address",
-            //     filled: true,
-            //     fillColor: Colors.black12,
-            //     prefixIcon: Icon(Icons.link),
-            //     suffixIcon: Consumer<NetProvider>(
-            //       builder: (BuildContext context, book, Widget? child) {
-            //         return IconButton(
-            //           onPressed: () {
-            //             book.addBook(widget.name, widget.url);
-            //             print(book.isBook);
-            //           },
-            //           icon: Icon(book.isBook ? Icons.star : Icons.star_border),
-            //         );
-            //       },
-            //     ),
-            //   ),
-            // );
+
           },
         ),
         actions: [
@@ -459,42 +431,7 @@ class _HomePageState extends State<HomePage> {
           ],
         ),
       ),
-      // bottomNavigationBar: Consumer<NetProvider>(
-      //   builder: (context, net, child) {
-      //     net.addNetListener();
-      //     if (net.isNet) {
-      //       return ScaffoldMessenger(
-      //         child: Container(
-      //           height: MediaQuery.sizeOf(context).height * 0.03,
-      //           width: MediaQuery.sizeOf(context).width,
-      //           decoration: BoxDecoration(
-      //             color: Colors.green,
-      //           ),
-      //           child: Center(
-      //             child: Text(
-      //               "Back online",
-      //               style: TextStyle(color: Colors.white),
-      //             ),
-      //           ),
-      //         ),
-      //       );
-      //     } else {
-      //       return Container(
-      //         height: MediaQuery.sizeOf(context).height * 0.03,
-      //         width: MediaQuery.sizeOf(context).width,
-      //         decoration: BoxDecoration(
-      //           color: Colors.red,
-      //         ),
-      //         child: Center(
-      //           child: Text(
-      //             "No Connection",
-      //             style: TextStyle(color: Colors.white),
-      //           ),
-      //         ),
-      //       );
-      //     }
-      //   },
-      // ),
+
     );
   }
 
